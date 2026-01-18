@@ -22,7 +22,7 @@ npm run build
 
 以下の 2 つの情報が必要です。
 
--   `SCRAPBOX_PROJECT`: 利用したい Scrapbox のプロジェクト名。
+-   `SCRAPBOX_PROJECT`: 利用したい Scrapbox のプロジェクト名。カンマ区切りで複数指定可能です（例: `project1,project2`）。
 -   `SCRAPBOX_CONNECT_SID`: 認証用の `connect.sid` クッキー値（ブラウザのデベロッパーツールから取得可能）。
     -   ※ 閲覧制限のない公開プロジェクトの場合は不要な場合があります。
 
@@ -37,13 +37,18 @@ npm run build
       "command": "node",
       "args": ["/Users/YOUR_USER/path/to/cosense-mcp/build/index.js"],
       "env": {
-        "SCRAPBOX_PROJECT": "your-project-name",
+        "SCRAPBOX_PROJECT": "project1,project2",
         "SCRAPBOX_CONNECT_SID": "your-connect-sid-cookie-value"
       }
     }
   }
 }
 ```
+
+## ツール仕様の変更案
+
+-   `search_pages`: 設定されたすべてのプロジェクトから検索し、`[project] title` の形式で結果を返します。
+-   `get_page` / `create_page`: `project` 引数をオプションで指定可能です。省略した場合は環境変数の最初に指定したプロジェクトが使用されます。
 
 ## 開発
 

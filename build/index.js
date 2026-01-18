@@ -4,9 +4,9 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError, } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
 import { z } from "zod";
-const SCRAPBOX_PROJECT = process.env.SCRAPBOX_PROJECT;
+const SCRAPBOX_PROJECTS = (process.env.SCRAPBOX_PROJECT || "").split(",").map(p => p.trim()).filter(p => p !== "");
 const CONNECT_SID = process.env.SCRAPBOX_CONNECT_SID;
-if (!SCRAPBOX_PROJECT) {
+if (SCRAPBOX_PROJECTS.length === 0) {
     console.error("Error: SCRAPBOX_PROJECT environment variable is required.");
     process.exit(1);
 }
@@ -49,13 +49,17 @@ class CosenseServer {
                                 type: "string",
                                 description: "The title of the page to retrieve",
                             },
+                            project: {
+                                type: "string",
+                                description: `The project to get the page from. Default: ${SCRAPBOX_PROJECTS[0]}`,
+                            },
                         },
                         required: ["title"],
                     },
                 },
                 {
                     name: "create_page",
-                    description: "Create a new page in the Scrapbox project.",
+                    description: "Create a new page in a Scrapbox project.",
                     inputSchema: {
                         type: "object",
                         properties: {
@@ -66,6 +70,10 @@ class CosenseServer {
                             body: {
                                 type: "string",
                                 description: "The content of the page",
+                            },
+                            project: {
+                                type: "string",
+                                description: `The project to create the page in. Default: ${SCRAPBOX_PROJECTS[0]}`,
                             },
                             appendIfExists: {
                                 type: "boolean",
@@ -78,7 +86,7 @@ class CosenseServer {
                 },
                 {
                     name: "search_pages",
-                    description: "Search for pages in the project by query keywords.",
+                    description: "Search for pages in configured projects by query keywords.",
                     inputSchema: {
                         type: "object",
                         properties: {
@@ -106,9 +114,12 @@ class CosenseServer {
         });
     }
     async handleGetPage(args) {
-        const { title } = z.object({ title: z.string() }).parse(args);
+        const { title, project } = z.object({
+            title: z.string(),
+            project: z.string().optional().default(SCRAPBOX_PROJECTS[0])
+        }).parse(args);
         try {
-            const response = await apiClient.get(`/pages/${SCRAPBOX_PROJECT}/${encodeURIComponent(title)}`);
+            const response = await apiClient.get(`/pages/${project}/${encodeURIComponent(title)}`);
             const lines = response.data.lines.map((l) => l.text).join("\n");
             return {
                 content: [
@@ -121,22 +132,27 @@ class CosenseServer {
         }
         catch (error) {
             if (error.response?.status === 404) {
-                throw new McpError(ErrorCode.InvalidRequest, `Page "${title}" not found.`);
+                throw new McpError(ErrorCode.InvalidRequest, `Page "${title}" not found in project "${project}".`);
             }
             throw new McpError(ErrorCode.InternalError, `Failed to get page: ${error.message}`);
         }
     }
     async handleCreatePage(args) {
-        const { title, body, appendIfExists } = z.object({
+        const { title, body, project, appendIfExists } = z.object({
             title: z.string(),
             body: z.string(),
+            project: z.string().optional().default(SCRAPBOX_PROJECTS[0]),
             appendIfExists: z.boolean().optional().default(false)
         }).parse(args);
         try {
+            // Check if project is authorized
+            if (!SCRAPBOX_PROJECTS.includes(project)) {
+                throw new McpError(ErrorCode.InvalidParams, `Project "${project}" is not in the allowed list.`);
+            }
             // Check if page exists first
             let existingPage = null;
             try {
-                const checkRes = await apiClient.get(`/pages/${SCRAPBOX_PROJECT}/${encodeURIComponent(title)}`);
+                const checkRes = await apiClient.get(`/pages/${project}/${encodeURIComponent(title)}`);
                 existingPage = checkRes.data;
             }
             catch (e) {
@@ -144,28 +160,28 @@ class CosenseServer {
                     throw e;
             }
             if (existingPage && !appendIfExists) {
-                throw new McpError(ErrorCode.InvalidRequest, `Page "${title}" already exists.`);
+                throw new McpError(ErrorCode.InvalidRequest, `Page "${title}" already exists in project "${project}".`);
             }
             const lines = body.split("\n");
             if (existingPage && appendIfExists) {
                 // Appending to existing page
                 const newLines = [...existingPage.lines.map((l) => l.text), ...lines];
-                await apiClient.post(`/pages/${SCRAPBOX_PROJECT}`, {
+                await apiClient.post(`/pages/${project}`, {
                     title,
                     lines: newLines,
                 });
                 return {
-                    content: [{ type: "text", text: `Successfully appended to page "${title}".` }],
+                    content: [{ type: "text", text: `Successfully appended to page "${title}" in project "${project}".` }],
                 };
             }
             else {
                 // Create new page
-                await apiClient.post(`/pages/${SCRAPBOX_PROJECT}`, {
+                await apiClient.post(`/pages/${project}`, {
                     title,
                     lines: [title, ...lines],
                 });
                 return {
-                    content: [{ type: "text", text: `Successfully created page "${title}".` }],
+                    content: [{ type: "text", text: `Successfully created page "${title}" in project "${project}".` }],
                 };
             }
         }
@@ -178,15 +194,24 @@ class CosenseServer {
     async handleSearchPages(args) {
         const { query } = z.object({ query: z.string() }).parse(args);
         try {
-            const response = await apiClient.get(`/pages/${SCRAPBOX_PROJECT}/search/query`, {
-                params: { q: query },
-            });
-            const titles = response.data.pages.map((p) => p.title);
+            const results = await Promise.all(SCRAPBOX_PROJECTS.map(async (project) => {
+                try {
+                    const response = await apiClient.get(`/pages/${project}/search/query`, {
+                        params: { q: query },
+                    });
+                    return response.data.pages.map((p) => `[${project}] ${p.title}`);
+                }
+                catch (e) {
+                    console.error(`Search failed for project ${project}:`, e);
+                    return [];
+                }
+            }));
+            const allTitles = results.flat();
             return {
                 content: [
                     {
                         type: "text",
-                        text: titles.length > 0 ? titles.join("\n") : "No pages found.",
+                        text: allTitles.length > 0 ? allTitles.join("\n") : "No pages found in any project.",
                     },
                 ],
             };
