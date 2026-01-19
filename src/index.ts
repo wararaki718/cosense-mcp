@@ -7,7 +7,7 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
-import { SCRAPBOX_PROJECTS } from "./constants.js";
+import { targetProjects } from "./constants.js";
 import {
   handleGetPage,
   handleCreatePage,
@@ -55,7 +55,7 @@ class CosenseServer {
               },
               projectName: {
                 type: "string",
-                description: `The project to get the page from. Default: ${SCRAPBOX_PROJECTS[0]}`,
+                description: `The project to get the page from. Default: ${targetProjects[0]}`,
               },
             },
             required: ["title"],
@@ -77,7 +77,7 @@ class CosenseServer {
               },
               projectName: {
                 type: "string",
-                description: `The project to create the page in. Default: ${SCRAPBOX_PROJECTS[0]}`,
+                description: `The project to create the page in. Default: ${targetProjects[0]}`,
               },
               appendIfExists: {
                 type: "boolean",

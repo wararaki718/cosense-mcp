@@ -1,5 +1,5 @@
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
-import { apiClient, SCRAPBOX_PROJECTS } from "./constants.js";
+import { apiClient, targetProjects } from "./constants.js";
 import {
   GetPageArgsSchema,
   CreatePageArgsSchema,
@@ -41,7 +41,7 @@ export async function handleCreatePage(args: any) {
     CreatePageArgsSchema.parse(args);
 
   try {
-    if (!SCRAPBOX_PROJECTS.includes(projectName)) {
+    if (!targetProjects.includes(projectName)) {
       throw new McpError(
         ErrorCode.InvalidParams,
         `Project "${projectName}" is not in the allowed list.`
@@ -111,9 +111,9 @@ export async function handleSearchPages(args: any) {
   const { query, projectName } = SearchPagesArgsSchema.parse(args);
 
   try {
-    const targetProjects = projectName ? [projectName] : SCRAPBOX_PROJECTS;
+    const projectsToSearch = projectName ? [projectName] : targetProjects;
     const results = await Promise.all(
-      targetProjects.map(async (project) => {
+      projectsToSearch.map(async (project) => {
         try {
           const response = await apiClient.get(`/pages/${project}/search/query`, {
             params: { q: query },
