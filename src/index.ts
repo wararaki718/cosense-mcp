@@ -12,6 +12,7 @@ import {
   handleGetPage,
   handleCreatePage,
   handleSearchPages,
+  handleSearchAll,
 } from "./handlers.js";
 
 class CosenseServer {
@@ -106,6 +107,20 @@ class CosenseServer {
             required: ["query"],
           },
         },
+        {
+          name: "search_all",
+          description: "Search for pages across all configured projects by query keywords.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Search keywords",
+              },
+            },
+            required: ["query"],
+          },
+        },
       ],
     }));
 
@@ -117,6 +132,8 @@ class CosenseServer {
           return handleCreatePage(request.params.arguments);
         case "search_pages":
           return handleSearchPages(request.params.arguments);
+        case "search_all":
+          return handleSearchAll(request.params.arguments);
         default:
           throw new McpError(
             ErrorCode.MethodNotFound,

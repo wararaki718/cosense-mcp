@@ -143,3 +143,39 @@ export async function handleSearchPages(args: any) {
     );
   }
 }
+
+export async function handleSearchAll(args: any) {
+  const { query } = SearchPagesArgsSchema.parse(args);
+
+  try {
+    const results = await Promise.all(
+      targetProjects.map(async (project) => {
+        try {
+          const response = await apiClient.get(`/pages/${project}/search/query`, {
+            params: { q: query },
+          });
+          return response.data.pages.map((p: any) => `[${project}] ${p.title}`);
+        } catch (e) {
+          console.error(`Search failed for project ${project}:`, e);
+          return [];
+        }
+      })
+    );
+
+    const allTitles = results.flat();
+    return {
+      content: [
+        {
+          type: "text",
+          text:
+            allTitles.length > 0 ? allTitles.join("\n") : "No pages found in any project.",
+        },
+      ],
+    };
+  } catch (error: any) {
+    throw new McpError(
+      ErrorCode.InternalError,
+      `Failed to search all projects: ${error.message}`
+    );
+  }
+}

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const targetProjects = (process.env.SCRAPBOX_PROJECT || "")
+export const targetProjects = (process.env.SCRAPBOX_PROJECTS || process.env.SCRAPBOX_PROJECT || "")
   .split(",")
   .map((p) => p.trim())
   .filter((p) => p !== "");
@@ -8,7 +8,7 @@ export const targetProjects = (process.env.SCRAPBOX_PROJECT || "")
 export const CONNECT_SID = process.env.SCRAPBOX_CONNECT_SID;
 
 if (targetProjects.length === 0) {
-  console.error("Error: SCRAPBOX_PROJECT environment variable is required.");
+  console.error("Error: SCRAPBOX_PROJECTS environment variable is required.");
   process.exit(1);
 }
 
