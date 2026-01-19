@@ -22,11 +22,18 @@ graph TD
         end
     end
 
-    subgraph "MCP Client (VS Code, etc.)"
-        Client[MCP Client]
+    subgraph "Claude Desktop (MCP Host)"
+        Agent[AI Agent / LLM]
+        Client[Host Process]
+        Agent -- "Requests tool execution" --> Client
+    end
+
+    subgraph "User Interface"
+        User[User]
     end
 
     %% Interactions
+    User -- "Asks question" --> Agent
     Client -- "JSON-RPC via Stdio" --> Index
     Index -- "ListTools / CallTool" --> Client
     
@@ -65,7 +72,10 @@ graph TD
 
 ## Data Flow
 
-1.  The **MCP Client** (e.g., GitHub Copilot or another AI assistant) sends a tool call request.
-2.  **`index.ts`** receives the request and routes it to the correct function in **`handlers.ts`**.
-3.  **`handlers.ts`** validates the arguments using schemas from **`types.ts`** and makes HTTP requests to the **Scrapbox API** using the client from **`constants.ts`**.
-4.  The results are formatted into text and returned through the server to the client via JSON-RPC.
+1.  The **User** asks a question or gives an instruction (e.g., "Search for project ideas in Cosense").
+2.  The **AI Agent** (inside Claude Desktop) processes the natural language, determines that it needs external information, and selects the appropriate tool (e.g., `search_all`).
+3.  The **MCP Host** (Claude Desktop process) sends a tool call request to the MCP Server via JSON-RPC.
+4.  **`index.ts`** receives the request and routes it to the correct function in **`handlers.ts`**.
+5.  **`handlers.ts`** validates the arguments using schemas from **`types.ts`** and makes HTTP requests to the **Scrapbox API** using the client from **`constants.ts`**.
+6.  The results are formatted into text and returned through the server to the client.
+7.  The **AI Agent** receives the tool output and generates a final response for the **User**.
