@@ -51,16 +51,40 @@ npm run build
 -   `search_pages`: 設定されたすべてのプロジェクトから検索し、`[project] title` の形式で結果を返します。
 -   `get_page` / `create_page`: `project` 引数をオプションで指定可能です。省略した場合は環境変数の最初に指定したプロジェクトが使用されます。
 
-## 開発
+## ワークスペースの構成
 
+このリポジトリには以下の3つのコンポーネントが含まれています：
+
+1.  **[mcp/](mcp/)**: Scrapbox API と直接やり取りする MCP サーバー。
+2.  **[backend/](backend/)**: LangChain を使用したエージェントサーバー。MCP サーバーをクライアントとして利用し、ユーザーの質問に回答します。
+3.  **[ui/](ui/)**: エージェントとチャットするための React ベースの Web インターフェース。
+
+## クイックスタート (エージェントアプリの実行)
+
+### 1. MCP サーバーのビルド
 ```bash
-# ビルド
 cd mcp
-npm run build
-
-# 型チェックとビルドの自動実行 (watchモードが必要な場合は scripts に追記してください)
+npm install
 npm run build
 ```
+
+### 2. バックエンドのセットアップ
+```bash
+cd backend
+npm install
+cp .env.example .env
+# .env を編集して OPENAI_API_KEY, SCRAPBOX_PROJECTS, SCRAPBOX_CONNECT_SID を設定してください
+npm run dev
+```
+
+### 3. UI のセットアップ
+```bash
+cd ui
+npm install
+npm run dev
+```
+
+ブラウザで [http://localhost:3000](http://localhost:3000) を開くとチャットを開始できます。
 
 ## ライセンス
 

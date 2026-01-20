@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/wararaki718/cosense-mcp#readme",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@modelcontextprotocol/sdk": "^1.25.3",
     "axios": "^1.13.2",
     "zod": "^4.3.5"
   },
