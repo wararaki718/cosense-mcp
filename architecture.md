@@ -22,20 +22,23 @@ graph TD
         end
     end
 
-    subgraph "Claude Desktop (MCP Host)"
-        Agent[AI Agent / LLM]
-        Client[Host Process]
-        Agent -- "Requests tool execution" --> Client
+    subgraph "Backend (LangChain)"
+        Agent[LangChain Agent / LLM]
+        MCPClient[MCP Client SDK]
+        Agent -- "Tool Calling" --> MCPClient
     end
 
-    subgraph "User Interface"
+    subgraph "User Interface (Web)"
+        Browser[Web Browser / UI]
         User[User]
+        User -- "Interaction" --> Browser
     end
 
     %% Interactions
-    User -- "Asks question" --> Agent
-    Client -- "JSON-RPC via Stdio" --> Index
-    Index -- "ListTools / CallTool" --> Client
+    User -- "Asks question" --> Browser
+    Browser -- "REST/WebSocket API" --> Agent
+    MCPClient -- "JSON-RPC (Stdio/SSE)" --> Index
+    Index -- "ListTools / CallTool" --> MCPClient
     
     Index -- "Routes calls" --> Handlers
     Handlers -- "Validates arguments" --> Types
@@ -70,12 +73,20 @@ graph TD
 4.  **[types.ts](src/types.ts)**:
     *   Defines Zod schemas for validating tool input parameters.
 
+5.  **LangChain Backend**:
+    *   Hosts the AI Agent logic and orchestrates tool calling using MCP Client SDKs.
+
+6.  **Web UI**:
+    *   Provides the interface for the user to interact with the agent.
+
 ## Data Flow
 
-1.  The **User** asks a question or gives an instruction (e.g., "Search for project ideas in Cosense").
-2.  The **AI Agent** (inside Claude Desktop) processes the natural language, determines that it needs external information, and selects the appropriate tool (e.g., `search_all`).
-3.  The **MCP Host** (Claude Desktop process) sends a tool call request to the MCP Server via JSON-RPC.
-4.  **`index.ts`** receives the request and routes it to the correct function in **`handlers.ts`**.
-5.  **`handlers.ts`** validates the arguments using schemas from **`types.ts`** and makes HTTP requests to the **Scrapbox API** using the client from **`constants.ts`**.
-6.  The results are formatted into text and returned through the server to the client.
-7.  The **AI Agent** receives the tool output and generates a final response for the **User**.
+1.  The **User** interacts with the **Web Browser / UI**.
+2.  The UI sends a request to the **LangChain Backend**.
+3.  The **LangChain Agent** determines that it needs external information and selects a tool.
+4.  The **MCP Client SDK** (within the backend) sends a tool call request to the MCP Server.
+5.  **`index.ts`** receives the request and routes it to the correct function in **`handlers.ts`**.
+6.  **`handlers.ts`** validates the arguments and makes HTTP requests to the **Scrapbox API**.
+7.  The results are returned through the server to the backend.
+8.  The **LangChain Agent** receives the tool output and generates a response for the **Web UI**.
+9.  The **User** sees the final response in the browser.

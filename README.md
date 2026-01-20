@@ -14,6 +14,7 @@ Claude Desktop などの MCP ホストから Scrapbox のページを読み書�
 ### 1. インストール
 
 ```bash
+cd mcp
 npm install
 npm run build
 ```
@@ -54,6 +55,7 @@ npm run build
 
 ```bash
 # ビルド
+cd mcp
 npm run build
 
 # 型チェックとビルドの自動実行 (watchモードが必要な場合は scripts に追記してください)
@@ -62,4 +64,4 @@ npm run build
 
 ## ライセンス
 
-ISC License
+Apache-2.0 license
