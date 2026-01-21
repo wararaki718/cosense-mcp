@@ -86,6 +86,12 @@ npm run dev
 
 ブラウザで [http://localhost:3000](http://localhost:3000) を開くとチャットを開始できます。
 
+sample input
+
+```text
+scrapbox から Machine Learning に関連するページをください。
+```
+
 ## ライセンス
 
 Apache-2.0 license
