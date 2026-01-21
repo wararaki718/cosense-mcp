@@ -34,6 +34,13 @@ graph TD
         User -- "Interaction" --> Browser
     end
 
+    subgraph "Evaluation (Ragas)"
+        Ragas[Ragas Evaluator]
+        TestDataset[(Test Dataset)]
+        Ragas -- "Evaluates" --> Agent
+        TestDataset -- "Input" --> Ragas
+    end
+
     %% Interactions
     User -- "Asks question" --> Browser
     Browser -- "REST/WebSocket API" --> Agent
@@ -78,6 +85,11 @@ graph TD
 
 6.  **Web UI**:
     *   Provides the interface for the user to interact with the agent.
+
+7.  **[evaluate/](evaluate/) (Ragas Evaluation)**:
+    *   **config.py**: Defines evaluation metrics (Faithfulness, Relevancy, etc.) and model configurations.
+    *   **run.py**: Main script to execute the evaluation process using the Ragas framework.
+    *   **datasets/**: Contains JSON-formatted test cases (questions, ground truths, etc.).
 
 ## Data Flow
 
