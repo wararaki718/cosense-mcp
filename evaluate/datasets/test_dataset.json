@@ -1,0 +1,30 @@
+{
+  "questions": [
+    "Scrapbox APIの認証方法は？",
+    "MCP Serverの役割は何ですか？",
+    "create_pageツールで既存ページに追記するには？",
+    "LangChain Agentはどのように動作しますか？",
+    "複数のScrapboxプロジェクトを使用できますか？"
+  ],
+  "ground_truths": [
+    "Scrapbox APIはconnect.sidクッキーを使用したCookie認証で保護されています。",
+    "MCP Serverはクライアントとの間でJSON-RPC通信を行い、Scrapbox APIへのツール呼び出しをルーティングします。",
+    "create_pageツールのappendIfExistsパラメータをtrueに設定すると、既存ページに本文を追記できます。",
+    "LangChain AgentはChatGoogleGenerativeAIを使用してツール呼び出しを決定し、MCP Client SDKを通じてツールを実行します。",
+    "はい、SCRAPBOX_PROJECTSに複数のプロジェクト名をカンマ区切りで指定できます。"
+  ],
+  "contexts": [
+    "Scrapbox API統合はconnect.sidクッキー認証を使用しており、環境変数SCRAPBOX_CONNECT_SIDに値を設定する必要があります。",
+    "index.ts (CosenseServer) はMCP サーバーライフサイクルを管理し、JSON-RPCメッセージのルーティングを行います。",
+    "create_pageツールはtitle、body、projectName、appendIfExistsのパラメータを受け入れます。",
+    "AgentはDynamicStructuredToolを使用してMCPツールをLangChain互換に変換し、createReactAgentで実行します。",
+    "環境変数SCRAPBOX_PROJECTSはカンマ区切りの複数プロジェクト名に対応しています。"
+  ],
+  "answer": [
+    "connect.sidクッキーを使用したCookie認証です。環境変数SCRAPBOX_CONNECT_SIDに設定します。",
+    "MCP Serverはindex.ts (CosenseServer)で実装され、JSON-RPC通信を管理しScrapbox APIへのツール呼び出しをルーティングします。",
+    "create_pageツールのappendIfExistsパラメータをtrueに設定することで可能です。",
+    "ChatGoogleGenerativeAIモデルがツール呼び出しを決定し、MCP Client SDKを通じてツールを実行してから結果を処理します。",
+    "可能です。SCRAPBOX_PROJECTSに複数プロジェクト名をカンマ区切りで指定できます。"
+  ]
+}

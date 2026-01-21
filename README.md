@@ -92,6 +92,99 @@ sample input
 scrapbox から Machine Learning に関連するページをください。
 ```
 
+## RAG評価 (Ragas)
+
+このシステムの RAG (Retrieval-Augmented Generation) 性能を評価できます。
+
+### 評価メトリクス
+
+- **Faithfulness**: 生成された回答がコンテキストに基づいているか
+- **Answer Relevancy**: 回答が質問に関連しているか
+- **Context Relevancy**: 検索されたコンテキストが質問に関連しているか
+- **Context Precision**: 検索されたコンテキストの精度
+
+### セットアップ
+
+```bash
+# Python環境のセットアップ
+python -m venv venv
+source venv/bin/activate  # macOS/Linux
+# または
+python -m venv venv && venv\Scripts\activate  # Windows
+
+# 依存パッケージのインストール
+pip install -r evaluate/requirements.txt
+```
+
+### 使用方法
+
+#### 1. テストデータセットの準備
+
+`evaluate/datasets/test_dataset.json` にテストデータを定義します。形式は以下の通りです：
+
+```json
+{
+  "questions": ["質問1", "質問2", ...],
+  "ground_truths": ["正解1", "正解2", ...],
+  "contexts": ["コンテキスト1", "コンテキスト2", ...],
+  "answer": ["回答1", "回答2", ...]
+}
+```
+
+#### 2. RAG評価の実行
+
+```bash
+# 基本的な使用方法
+python -m evaluate.run --dataset evaluate/datasets/test_dataset.json
+
+# 結果をファイルに保存
+python -m evaluate.run --dataset evaluate/datasets/test_dataset.json --output results.json
+```
+
+#### 3. 結果の確認
+
+評価スクリプトはコンソールに結果を表示し、オプションで JSON ファイルに保存します。
+
+```
+==================================================
+RAG Evaluation Results
+==================================================
+{
+  "faithfulness": {
+    "mean": 0.85,
+    "scores": [0.8, 0.9, 0.85, ...]
+  },
+  ...
+}
+```
+
+### ディレクトリ構成
+
+```
+evaluate/
+├── __init__.py              # Evaluate パッケージ
+├── config.py                # 評価メトリクスと LLM 設定
+├── run.py                   # 評価実行スクリプト
+└── datasets/
+    └── test_dataset.json    # テストデータセット
+```
+
+### カスタマイズ
+
+評価メトリクスや LLM の設定は `evaluate/config.py` で管理できます。
+
+```python
+# 評価メトリクスの変更
+EVALUATION_METRICS = [
+    faithfulness,
+    answer_relevancy,
+    # 必要に応じてメトリクスを追加
+]
+
+# LLM モデルの変更
+LLM_MODEL = "gemini-2.5-flash-lite"
+```
+
 ## ライセンス
 
 Apache-2.0 license
